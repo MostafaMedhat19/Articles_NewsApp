@@ -3,67 +3,126 @@ import 'package:provider/provider.dart';
 import 'package:untitled/providers/login_provider.dart';
 import 'package:untitled/screens/HomeScreen.dart';
 import 'package:untitled/screens/SignupScreen.dart';
-
 import '../widgets/TextFieldCustom.dart';
 
 class LoginScreen extends StatelessWidget {
-   LoginScreen({super.key});
-  TextEditingController passwordController = TextEditingController();
-   TextEditingController emailController = TextEditingController();
+  LoginScreen({super.key});
+
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
-    var formKey =GlobalKey<FormState>();
+    final theme = Theme.of(context);
+    final Color primaryColor = Colors.blueAccent;
+    final Color backgroundColor = Colors.grey[100]!;
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('Login'),
+        backgroundColor: primaryColor,
+        title: const Text(' Login'),
         centerTitle: true,
+        elevation: 2,
       ),
-      body:  Form(
-        key: formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: [
 
-               SizedBox(
-                  width: double.infinity,
-                  child:  CircleAvatar(
-                    radius: 10.5,
-                    child: Image.asset(''),
-                  ),
+
+
+                const SizedBox(height: 30),
+
+                textFieldCustom(
+                  'Email',
+                  Icons.email_outlined,
+                  emailController,
+
                 ),
-            textFieldCustom('email' , Icons.email ,emailController ),
+                const SizedBox(height: 20),
 
-            textFieldCustom('password' , Icons.password , passwordController),
+                textFieldCustom(
+                  'Password',
+                  Icons.lock_outline,
+                  passwordController,
+                  isPassword: true,
 
-            Consumer<LoginProvider>(
-              builder: ( context,  value,  child)  {
+                ),
+                const SizedBox(height: 30),
 
-                return TextButton(
-                    onPressed: ()async  {
+                Consumer<LoginProvider>(
+                  builder: (context, provider, _) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.login, size: 20),
+                        label: const Text(
+                          'Login',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor: primaryColor,
+                        ),
+                        onPressed: () async {
+                          if (formKey.currentState!.validate()) {
+                            var result = await provider.login(
+                              passwordController.text,
+                              emailController.text,
+                            );
+                            if (result == true) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (_) => HomeScreen()),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(result.toString()),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 15),
 
-                  if(formKey.currentState!.validate() )
-                    {
-                      var result = await value.login(passwordController.text, emailController.text);
-                      if(result == true)
-                        {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) =>  HomeScreen(),));
-                        }
-                      else
-                      {
-                        ScaffoldMessenger.of(context).showSnackBar(  SnackBar(content: Text(result.toString())));
-                      }
-                    }
-
-                }, child: const Text('Login'));
-              }
-
-
-            ) ,
-            TextButton(onPressed: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) =>  SignupScreen(),));
-            }, child: const Text('Go To Sign up '))
-          ],
-
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account?", style: TextStyle(color: Colors.black87)),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => SignupScreen()),
+                        );
+                      },
+                      child: Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
         ),
       ),
     );
